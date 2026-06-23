@@ -1,0 +1,360 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{display:grid;grid-template-columns:220px 1fr 300px;height:720px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+.sidebar{border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:14px 14px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sidebar-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px}
+.search-box{display:flex;align-items:center;gap:6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:5px 8px;background:var(--color-background-secondary)}
+.search-box input{border:none;background:none;outline:none;font-size:12px;color:var(--color-text-primary);width:100%}
+.sidebar-section{padding:10px 14px 6px}
+.sidebar-section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.filter-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.filter-label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-svc{background:#7F77DD}
+.dot-gw{background:#1D9E75}
+.dot-broker{background:#EF9F27}
+.dot-db{background:#E24B4A}
+.dot-ext{background:#888780}
+.filter-count{font-size:11px;color:var(--color-text-tertiary)}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:6px 0}
+.event-search-area{padding:10px 14px}
+.event-input-wrap{position:relative}
+.event-input-wrap input{width:100%;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 8px 6px 28px;font-size:12px;background:var(--color-background-secondary);color:var(--color-text-primary);outline:none}
+.event-input-wrap .ti{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--color-text-tertiary)}
+.event-result{margin-top:8px;padding:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.event-result-name{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.event-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;border-radius:20px;padding:2px 7px;margin:2px 2px 0 0}
+.pill-prod{background:#EEEDFE;color:#3C3489}
+.pill-cons{background:#E1F5EE;color:#085041}
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-tertiary)}
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.toolbar-title{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
+.tab-btn{font-size:12px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-secondary);cursor:pointer}
+.tab-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.badge-sm{font-size:10px;padding:2px 6px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.map-area{flex:1;position:relative;overflow:hidden}
+svg.map{width:100%;height:100%}
+.detail{border-left:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden}
+.detail-header{padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.detail-node-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.node-icon{width:36px;height:36px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.icon-svc{background:#EEEDFE;color:#534AB7}
+.icon-gw{background:#E1F5EE;color:#0F6E56}
+.icon-broker{background:#FAEEDA;color:#854F0B}
+.icon-db{background:#FCEBEB;color:#A32D2D}
+.node-name{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.node-sub{font-size:11px;color:var(--color-text-tertiary)}
+.status-row{display:flex;gap:6px;flex-wrap:wrap}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid}
+.s-healthy{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.s-grpc{background:#EEEDFE;color:#3C3489;border-color:#AFA9EC}
+.s-rest{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.s-asb{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.s-k8s{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.s-domain{background:var(--color-background-secondary);color:var(--color-text-secondary);border-color:var(--color-border-secondary)}
+.detail-body{flex:1;overflow-y:auto;padding:0 0 1rem}
+.detail-section{padding:10px 14px 4px}
+.detail-section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.conn-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.conn-row:last-child{border-bottom:none}
+.conn-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.conn-info{flex:1;min-width:0}
+.conn-name{font-size:12px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conn-meta{font-size:10px;color:var(--color-text-tertiary)}
+.conn-type{font-size:10px;padding:1px 5px;border-radius:4px}
+.type-grpc{background:#EEEDFE;color:#3C3489}
+.type-asb{background:#FAEEDA;color:#633806}
+.type-jdbc{background:#FCEBEB;color:#A32D2D}
+.behaviour-card{margin:8px 14px;padding:8px 10px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary)}
+.behaviour-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.behaviour-meta{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.channel-card{margin:4px 0;padding:7px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.channel-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.channel-meta{font-size:10px;color:var(--color-text-tertiary);margin-top:1px}
+.channel-subs{margin-top:6px;padding-left:10px;border-left:2px solid var(--color-border-tertiary)}
+.sub-row{font-size:11px;color:var(--color-text-secondary);padding:2px 0;display:flex;align-items:center;gap:6px}
+.mode-badge{font-size:9px;padding:1px 5px;border-radius:10px}
+.mode-code{background:#EEEDFE;color:#3C3489}
+.mode-auto{background:#E1F5EE;color:#085041}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 14px 4px}
+.metric-card{padding:8px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)}
+.metric-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.metric-label{font-size:10px;color:var(--color-text-tertiary);margin-top:1px}
+</style>
+
+<div class="app">
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title"><i class="ti ti-topology-star-3" style="font-size:14px;margin-right:5px" aria-hidden="true"></i>Service Registry</div>
+    <div class="search-box">
+      <i class="ti ti-search" style="font-size:14px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+      <input type="text" placeholder="Search services…" readonly>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Node type</div>
+    <div class="filter-row"><div class="filter-label"><span class="dot dot-svc"></span>Service</div><span class="filter-count">2</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot dot-gw"></span>API Gateway</div><span class="filter-count">1</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot dot-broker"></span>Message Broker</div><span class="filter-count">1</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot dot-db"></span>Database</div><span class="filter-count">1</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot dot-ext"></span>External</div><span class="filter-count">0</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Domain</div>
+    <div class="filter-row"><div class="filter-label"><span class="dot" style="background:#7F77DD"></span>Orders</div><span class="filter-count">5</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot" style="background:#1D9E75"></span>Notifications</div><span class="filter-count">1</span></div>
+    <div class="filter-row"><div class="filter-label"><span class="dot" style="background:#888780"></span>Analytics</div><span class="filter-count">1</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="event-search-area">
+    <div class="sidebar-section-label">Event search</div>
+    <div class="event-input-wrap">
+      <i class="ti ti-bolt"></i>
+      <input type="text" value="OrderPlaced" readonly>
+    </div>
+    <div class="event-result">
+      <div class="event-result-name">OrderPlaced</div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:5px">order-events · orders-bus (ASB)</div>
+      <div>
+        <span class="event-pill pill-prod"><i class="ti ti-arrow-up-right" style="font-size:10px"></i>Order DAL</span>
+        <span class="event-pill pill-cons"><i class="ti ti-arrow-down-left" style="font-size:10px"></i>Notification Svc</span>
+        <span class="event-pill pill-cons"><i class="ti ti-arrow-down-left" style="font-size:10px"></i>Analytics Svc</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+  <div style="padding:10px 14px;border-top:0.5px solid var(--color-border-tertiary)">
+    <div style="font-size:10px;color:var(--color-text-tertiary)">5 nodes · 4 edges · 1 cross-domain</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="toolbar">
+    <span class="toolbar-title">Orders domain map</span>
+    <button class="tab-btn active">Map</button>
+    <button class="tab-btn">List</button>
+    <span class="badge-sm">env: prod</span>
+    <i class="ti ti-adjustments-horizontal" style="font-size:16px;color:var(--color-text-secondary)" aria-hidden="true"></i>
+  </div>
+
+  <div class="map-area">
+    <svg class="map" viewBox="0 0 460 550">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+        <marker id="arr-asb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+        <marker id="arr-db" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+        <marker id="arr-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+
+      <text x="16" y="22" style="font-size:10px;fill:#888780;font-family:var(--font-sans)">Orders domain</text>
+      <rect x="10" y="30" width="440" height="370" rx="10" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+
+      <text x="16" y="430" style="font-size:10px;fill:#888780;font-family:var(--font-sans)">Cross-domain consumers</text>
+      <rect x="10" y="438" width="440" height="100" rx="10" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+
+      <line x1="230" y1="110" x2="230" y2="158" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr)"/>
+      <text x="238" y="138" style="font-size:10px;fill:#7F77DD;font-family:var(--font-sans)">REST</text>
+
+      <line x1="230" y1="212" x2="230" y2="258" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr)"/>
+      <text x="238" y="238" style="font-size:10px;fill:#7F77DD;font-family:var(--font-sans)">gRPC · mTLS</text>
+
+      <line x1="230" y1="312" x2="230" y2="357" stroke="#E24B4A" stroke-width="1" marker-end="url(#arr-db)"/>
+      <text x="238" y="338" style="font-size:10px;fill:#E24B4A;font-family:var(--font-sans)">JDBC</text>
+
+      <path d="M310 285 Q420 285 420 200 Q420 145 370 145" fill="none" stroke="#EF9F27" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#arr-asb)"/>
+      <text x="390" y="210" style="font-size:9px;fill:#EF9F27;font-family:var(--font-sans)">ASB</text>
+      <text x="390" y="220" style="font-size:9px;fill:#888780;font-family:var(--font-sans)">OUTBOX</text>
+
+      <line x1="370" y1="175" x2="140" y2="468" stroke="#888780" stroke-width="0.75" stroke-dasharray="4 3" marker-end="url(#arr-cross)"/>
+      <line x1="370" y1="175" x2="300" y2="468" stroke="#888780" stroke-width="0.75" stroke-dasharray="4 3" marker-end="url(#arr-cross)"/>
+
+      <g style="cursor:pointer" onclick="sendPrompt('Tell me about the Orders API Gateway node')">
+        <circle cx="230" cy="80" r="46" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+        <text x="230" y="74" text-anchor="middle" style="font-size:11px;font-weight:500;fill:#085041;font-family:var(--font-sans)">Orders</text>
+        <text x="230" y="88" text-anchor="middle" style="font-size:10px;fill:#0F6E56;font-family:var(--font-sans)">API Gateway</text>
+        <text x="230" y="101" text-anchor="middle" style="font-size:9px;fill:#1D9E75;font-family:var(--font-sans)">APIM · REST</text>
+      </g>
+
+      <g style="cursor:pointer" onclick="sendPrompt('Tell me about the Order Service node')">
+        <circle cx="230" cy="185" r="42" fill="#EEEDFE" stroke="#7F77DD" stroke-width="2.5"/>
+        <text x="230" y="180" text-anchor="middle" style="font-size:11px;font-weight:500;fill:#26215C;font-family:var(--font-sans)">Order</text>
+        <text x="230" y="193" text-anchor="middle" style="font-size:10px;fill:#3C3489;font-family:var(--font-sans)">Service</text>
+        <text x="230" y="206" text-anchor="middle" style="font-size:9px;fill:#534AB7;font-family:var(--font-sans)">REST · public</text>
+      </g>
+
+      <g style="cursor:pointer" onclick="sendPrompt('Tell me about the Order DAL node and its outbox behaviour')">
+        <circle cx="230" cy="285" r="42" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1.5"/>
+        <text x="230" y="278" text-anchor="middle" style="font-size:11px;font-weight:500;fill:#26215C;font-family:var(--font-sans)">Order DAL</text>
+        <text x="230" y="291" text-anchor="middle" style="font-size:10px;fill:#3C3489;font-family:var(--font-sans)">gRPC server</text>
+        <rect x="196" y="298" width="68" height="14" rx="4" fill="#AFA9EC"/>
+        <text x="230" y="308" text-anchor="middle" style="font-size:9px;fill:#26215C;font-family:var(--font-sans)">⏱ outbox relay</text>
+      </g>
+
+      <g style="cursor:pointer" onclick="sendPrompt('Tell me about the Orders DB node')">
+        <rect x="185" y="357" width="90" height="44" rx="8" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+        <text x="230" y="376" text-anchor="middle" style="font-size:11px;font-weight:500;fill:#501313;font-family:var(--font-sans)">Orders DB</text>
+        <text x="230" y="390" text-anchor="middle" style="font-size:9px;fill:#791F1F;font-family:var(--font-sans)">Azure SQL</text>
+      </g>
+
+      <g style="cursor:pointer" onclick="sendPrompt('Tell me about the orders-bus ASB broker node and its channels')">
+        <rect x="300" y="114" width="100" height="62" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="1"/>
+        <text x="350" y="135" text-anchor="middle" style="font-size:11px;font-weight:500;fill:#412402;font-family:var(--font-sans)">orders-bus</text>
+        <text x="350" y="148" text-anchor="middle" style="font-size:9px;fill:#633806;font-family:var(--font-sans)">ASB · Premium</text>
+        <rect x="308" y="154" width="84" height="14" rx="3" fill="none" stroke="#EF9F27" stroke-width="0.5"/>
+        <text x="350" y="164" text-anchor="middle" style="font-size:9px;fill:#854F0B;font-family:var(--font-sans)">order-events [TOPIC]</text>
+      </g>
+
+      <g onclick="sendPrompt('Tell me about the Notification Service consumer of OrderPlaced')" style="cursor:pointer">
+        <circle cx="140" cy="487" r="32" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+        <text x="140" y="483" text-anchor="middle" style="font-size:10px;font-weight:500;fill:#2C2C2A;font-family:var(--font-sans)">Notif.</text>
+        <text x="140" y="495" text-anchor="middle" style="font-size:9px;fill:#5F5E5A;font-family:var(--font-sans)">Service</text>
+        <text x="140" y="507" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:var(--font-sans)">notifications sub</text>
+      </g>
+
+      <g onclick="sendPrompt('Tell me about the Analytics Service consumer of OrderPlaced')" style="cursor:pointer">
+        <circle cx="300" cy="487" r="32" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+        <text x="300" y="483" text-anchor="middle" style="font-size:10px;font-weight:500;fill:#2C2C2A;font-family:var(--font-sans)">Analytics</text>
+        <text x="300" y="495" text-anchor="middle" style="font-size:9px;fill:#5F5E5A;font-family:var(--font-sans)">Service</text>
+        <text x="300" y="507" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:var(--font-sans)">analytics sub · auto-disc</text>
+      </g>
+
+      <g>
+        <rect x="14" y="394" width="10" height="2" fill="#7F77DD" rx="1"/>
+        <text x="28" y="397" style="font-size:9px;fill:#7F77DD;font-family:var(--font-sans)">REST / gRPC (sync)</text>
+        <rect x="14" y="406" width="10" height="1" fill="#EF9F27" rx="1"/>
+        <line x1="14" y1="412" x2="24" y2="412" stroke="#EF9F27" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="28" y="415" style="font-size:9px;fill:#EF9F27;font-family:var(--font-sans)">ASB publish (outbox)</text>
+        <line x1="14" y1="425" x2="24" y2="425" stroke="#888780" stroke-width="0.75" stroke-dasharray="3 2"/>
+        <text x="28" y="428" style="font-size:9px;fill:#888780;font-family:var(--font-sans)">cross-domain consume</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<div class="detail">
+  <div class="detail-header">
+    <div class="detail-node-row">
+      <div class="node-icon icon-svc"><i class="ti ti-server" aria-hidden="true"></i></div>
+      <div>
+        <div class="node-name">Order DAL</div>
+        <div class="node-sub">ServiceNode · Orders domain</div>
+      </div>
+    </div>
+    <div class="status-row">
+      <span class="status-badge s-healthy"><i class="ti ti-circle-check" style="font-size:11px"></i>healthy</span>
+      <span class="status-badge s-grpc">gRPC</span>
+      <span class="status-badge s-k8s">k8s</span>
+      <span class="status-badge s-domain">v1.9.0</span>
+    </div>
+  </div>
+
+  <div class="detail-body">
+
+    <div class="detail-section">
+      <div class="detail-section-label">Ownership</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;gap:8px"><span style="color:var(--color-text-tertiary);width:60px">Team</span><span>Platform Eng</span></div>
+        <div style="display:flex;gap:8px"><span style="color:var(--color-text-tertiary);width:60px">Repo</span><span style="color:var(--color-text-info)">github/order-dal</span></div>
+        <div style="display:flex;gap:8px"><span style="color:var(--color-text-tertiary);width:60px">SLA</span><span>99.9%</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-label">Embedded behaviours</div>
+      <div class="behaviour-card">
+        <div class="behaviour-name"><i class="ti ti-clock" style="font-size:12px;margin-right:4px" aria-hidden="true"></i>Outbox Relay</div>
+        <div class="behaviour-meta">OUTBOX_RELAY · cron every 30 s · drives 1 edge</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-label">Connections</div>
+      <div class="conn-row">
+        <div class="conn-icon icon-svc"><i class="ti ti-server" style="font-size:12px" aria-hidden="true"></i></div>
+        <div class="conn-info">
+          <div class="conn-name">← Order Service</div>
+          <div class="conn-meta">inbound · gRPC · REQUEST_RESPONSE · mTLS</div>
+        </div>
+        <span class="conn-type type-grpc">gRPC</span>
+      </div>
+      <div class="conn-row">
+        <div class="conn-icon icon-db"><i class="ti ti-database" style="font-size:12px" aria-hidden="true"></i></div>
+        <div class="conn-info">
+          <div class="conn-name">→ Orders DB</div>
+          <div class="conn-meta">outbound · JDBC · READ_WRITE · managed id</div>
+        </div>
+        <span class="conn-type type-jdbc">JDBC</span>
+      </div>
+      <div class="conn-row">
+        <div class="conn-icon icon-broker"><i class="ti ti-topology-ring" style="font-size:12px" aria-hidden="true"></i></div>
+        <div class="conn-info">
+          <div class="conn-name">→ orders-bus</div>
+          <div class="conn-meta">outbound · ASB · PRODUCE · driven by outbox relay</div>
+        </div>
+        <span class="conn-type type-asb">ASB</span>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-label">Broker channels (orders-bus)</div>
+      <div class="channel-card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="channel-name">order-events</div>
+          <span style="font-size:10px;padding:1px 6px;border-radius:4px;background:#FAEEDA;color:#633806">TOPIC</span>
+        </div>
+        <div class="channel-meta">Avro · schema-v2.1.0 · retention P7D · DLQ configured</div>
+        <div class="channel-subs">
+          <div class="sub-row">
+            <i class="ti ti-corner-down-right" style="font-size:11px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+            notifications
+            <span class="mode-badge mode-code">code-declared</span>
+          </div>
+          <div class="sub-row">
+            <i class="ti ti-corner-down-right" style="font-size:11px;color:var(--color-text-tertiary)" aria-hidden="true"></i>
+            analytics
+            <span class="mode-badge mode-auto">auto-discovered</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-label">Observability</div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-val" style="color:var(--color-text-success)">99.97%</div><div class="metric-label">uptime (30d)</div></div>
+      <div class="metric-card"><div class="metric-val">38ms</div><div class="metric-label">p99 latency</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:var(--color-text-warning)">2</div><div class="metric-label">DLQ messages</div></div>
+      <div class="metric-card"><div class="metric-val">1.2k/s</div><div class="metric-label">events published</div></div>
+    </div>
+    <div style="padding:4px 14px 0">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a href="#" style="font-size:11px;color:var(--color-text-info)"><i class="ti ti-chart-bar" style="font-size:11px" aria-hidden="true"></i> Dashboard</a>
+        <a href="#" style="font-size:11px;color:var(--color-text-info);margin-left:8px"><i class="ti ti-file-text" style="font-size:11px" aria-hidden="true"></i> Logs</a>
+        <a href="#" style="font-size:11px;color:var(--color-text-info);margin-left:8px"><i class="ti ti-route" style="font-size:11px" aria-hidden="true"></i> Traces</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
