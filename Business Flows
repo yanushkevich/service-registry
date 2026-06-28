@@ -1,0 +1,34 @@
+GET /api/flows
+  List all flows (filter by variant, domain, regulatory flags)
+  Query: ?domain={domain}&variant={HAPPY_PATH}&regulatory={GDPR}
+  Response: BusinessFlow[]
+
+POST /api/flows
+  Create a new flow (UI-driven or YAML import)
+  Body: BusinessFlow { id, name, steps[], endToEndSlo, ... }
+  Response: BusinessFlow (201)
+
+GET /api/flows/{id}
+  Fetch flow with complete step details
+  Response: BusinessFlow { steps, criticalPath, asyncLegs, ... }
+
+PUT /api/flows/{id}
+  Update flow (steps, SLO, ownership)
+  Response: BusinessFlow
+
+GET /api/flows/{id}/variants
+  List all variants of this flow (DEGRADED_MODE, COMPENSATING, CANARY)
+  Response: BusinessFlow[]
+
+POST /api/flows/{id}/variants
+  Create a variant (derived from parent)
+  Body: { variant: "DEGRADED_MODE", parentFlowId: id }
+  Response: BusinessFlow (201)
+
+GET /api/flows/{id}/health
+  Current SLO status of this flow
+  Response: { p99Latency, errorRate, sloStatus, criticality }
+
+POST /api/flows/{id}/test
+  Trigger integration test for this flow
+  Response: { testId, status, results[] }
