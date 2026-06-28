@@ -1,0 +1,21 @@
+GET /api/nodes/{nodeId}/endpoints
+  List all API endpoints exposed by a service
+  Response: APIEndpoint[]
+
+POST /api/nodes/{nodeId}/endpoints
+  Create a new endpoint (usually via OpenAPI sync)
+  Body: { method, path, operationId, ... }
+  Response: APIEndpoint (201)
+
+GET /api/endpoints/{id}
+  Fetch endpoint with consumers and usage stats
+  Response: APIEndpoint { consumers, callsPerDay, errorRate, ... }
+
+PUT /api/endpoints/{id}
+  Mark as deprecated, update SLA, etc.
+  Body: { deprecated, sunsetDate, deprecationMessage, ... }
+  Response: APIEndpoint
+
+GET /api/endpoints/{id}/consumers
+  List services that call this endpoint
+  Response: ServiceConsumer[]
