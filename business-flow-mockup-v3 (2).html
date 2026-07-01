@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service Registry — Business Flows v2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    --font-mono:'SF Mono','Consolas','Menlo',monospace;
+    --bg:#D8D6CF; --bg-app:#FFFFFF; --bg-s:#F5F4F1; --bg-t:#EDECEA;
+    --bd:#E0DED8; --bd2:#CCCAC3;
+    --tx:#1A1A18; --tx2:#5F5E5A; --tx3:#888780; --tx-lnk:#0C447C;
+    --pu50:#EEEDFE;--pu200:#AFA9EC;--pu400:#7F77DD;--pu600:#534AB7;--pu800:#3C3489;--pu900:#26215C;
+    --te50:#E1F5EE;--te400:#1D9E75;--te600:#0F6E56;--te900:#085041;
+    --am50:#FAEEDA;--am400:#EF9F27;--am600:#854F0B;--am800:#633806;
+    --re50:#FCEBEB;--re400:#E24B4A;--re600:#A32D2D;--re900:#501313;
+    --bl50:#E6F1FB;--bl400:#378ADD;--bl800:#0C447C;
+    --gr50:#EAF3DE;--gr400:#97C459;--gr800:#27500A;
+    --gy50:#F1EFE8;--gy400:#888780;--gy600:#5F5E5A;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-sans);background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .app{display:grid;grid-template-columns:248px 1fr 312px;height:780px;width:1180px;border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;background:var(--bg-app);box-shadow:0 4px 32px rgba(0,0,0,0.13)}
+
+  /* ═ SIDEBAR ═══════════════════════════════════════════ */
+  .sb{border-right:0.5px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--bg-app)}
+  .sb-head{padding:12px 12px 10px;border-bottom:0.5px solid var(--bd);flex-shrink:0}
+  .sb-logo{font-size:13px;font-weight:500;color:var(--tx);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .sb-search{display:flex;align-items:center;gap:5px;border:0.5px solid var(--bd2);border-radius:6px;padding:5px 8px;background:var(--bg-s)}
+  .sb-search input{border:none;background:none;outline:none;font-size:12px;color:var(--tx);width:100%;font-family:var(--font-sans)}
+  /* Domain tabs */
+  .dom-tabs{display:flex;gap:2px;padding:8px 10px 0;border-bottom:0.5px solid var(--bd);flex-shrink:0}
+  .dtab{font-size:11px;padding:4px 8px;border-radius:6px 6px 0 0;cursor:pointer;color:var(--tx3);border:0.5px solid transparent;border-bottom:none;background:transparent;font-family:var(--font-sans)}
+  .dtab:hover{background:var(--bg-s)}
+  .dtab.active{background:var(--bg-app);color:var(--tx);font-weight:500;border-color:var(--bd);border-bottom-color:var(--bg-app);margin-bottom:-0.5px;z-index:1}
+  /* Capability tree */
+  .cap-tree{flex:1;overflow-y:auto;padding:8px 0}
+  /* capability group */
+  .cap-group{margin-bottom:2px}
+  .cap-header{display:flex;align-items:center;gap:6px;padding:6px 12px;cursor:pointer;user-select:none}
+  .cap-header:hover{background:var(--bg-s)}
+  .cap-chevron{font-size:11px;color:var(--tx3);transition:transform .15s;flex-shrink:0}
+  .cap-chevron.open{transform:rotate(90deg)}
+  .cap-ic{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+  .cap-name{font-size:12px;font-weight:500;color:var(--tx);flex:1}
+  .cap-cnt{font-size:10px;color:var(--tx3);background:var(--bg-s);border:0.5px solid var(--bd);border-radius:10px;padding:0 5px}
+  /* flow items inside capability */
+  .cap-flows{display:none;padding-left:10px}
+  .cap-flows.open{display:block}
+  .fi{display:flex;align-items:center;gap:7px;padding:5px 12px 5px 28px;cursor:pointer;border-left:2px solid transparent;position:relative}
+  .fi::before{content:'';position:absolute;left:16px;top:50%;width:8px;height:0.5px;background:var(--bd2)}
+  .fi:hover{background:var(--bg-s)}
+  .fi.active{background:var(--pu50);border-left-color:var(--pu400)}
+  .fi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .fi-info{flex:1;min-width:0}
+  .fi-name{font-size:12px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fi-meta{font-size:10px;color:var(--tx3)}
+  .fi-bdg{font-size:9px;padding:1px 5px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+  .bdg-ok  {background:var(--gr50);color:var(--gr800)}
+  .bdg-warn{background:var(--am50);color:var(--am800)}
+  .bdg-err {background:var(--re50);color:var(--re600)}
+  /* cross-domain section */
+  .xd-sect{padding:4px 12px 2px;flex-shrink:0;border-top:0.5px solid var(--bd)}
+  .xd-lbl{font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:6px 0 4px}
+  .xd-fi{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-radius:5px;margin-bottom:1px}
+  .xd-fi:hover{background:var(--bg-s)}
+  .xd-name{font-size:11px;color:var(--tx2);flex:1}
+  .sb-foot{padding:8px 12px;border-top:0.5px solid var(--bd);font-size:10px;color:var(--tx3);flex-shrink:0}
+
+  /* ═ MAIN ═══════════════════════════════════════════════ */
+  .main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-t)}
+  .toolbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:0.5px solid var(--bd);background:var(--bg-app);flex-shrink:0}
+  /* breadcrumb */
+  .breadcrumb{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--tx3);flex:1}
+  .bc-link{color:var(--tx-lnk);cursor:pointer}
+  .bc-sep{color:var(--tx3);font-size:10px}
+  .bc-cur{color:var(--tx);font-weight:500}
+  .tbtn{font-size:12px;padding:3px 9px;border:0.5px solid var(--bd2);border-radius:6px;background:none;color:var(--tx2);cursor:pointer;font-family:var(--font-sans);transition:background .1s}
+  .tbtn:hover{background:var(--bg-s)}
+  .tbtn.active{background:var(--bg-s);color:var(--tx);font-weight:500}
+  .bdg-sm{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--bg-s);color:var(--tx2);border:0.5px solid var(--bd)}
+  /* slo bar */
+  .slo-bar{display:flex;gap:6px;padding:7px 13px;background:var(--bg-app);border-bottom:0.5px solid var(--bd);align-items:center;flex-shrink:0}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;border:0.5px solid}
+  .chip-ok  {background:var(--gr50);color:var(--gr800);border-color:var(--gr400)}
+  .chip-warn{background:var(--am50);color:var(--am800);border-color:var(--am400)}
+  .chip-info{background:var(--pu50);color:var(--pu800);border-color:var(--pu200)}
+  .chip-neu {background:var(--bg-s);color:var(--tx2);border-color:var(--bd2)}
+  /* context bar (capability + variant) */
+  .ctx-bar{display:flex;align-items:center;gap:8px;padding:6px 13px;background:var(--bg-app);border-bottom:0.5px solid var(--bd);flex-shrink:0}
+  .ctx-cap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2)}
+  .ctx-cap-ic{width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px}
+  .ctx-sep{color:var(--bd2);font-size:10px}
+  .vc{font-size:10px;padding:2px 8px;border-radius:20px;border:0.5px solid;cursor:pointer}
+  .vc-on {background:var(--pu50);color:var(--pu800);border-color:var(--pu200);font-weight:500}
+  .vc-off{background:var(--bg-s);color:var(--tx2);border-color:var(--bd2)}
+  /* tabs */
+  .tab-area{flex:1;overflow:hidden;display:flex;flex-direction:column}
+  .tab-pane{display:none;flex:1;overflow:hidden;flex-direction:column}
+  .tab-pane.active{display:flex}
+  .canvas{flex:1;overflow:hidden;position:relative}
+  .canvas svg{width:100%;height:100%}
+  .hint{position:absolute;bottom:10px;left:13px;font-size:10px;color:var(--tx3);background:var(--bg-app);border:0.5px solid var(--bd);border-radius:5px;padding:3px 8px;pointer-events:none;display:flex;align-items:center;gap:4px}
+
+  /* ── FLOW TAB: swim-lane ──────────────── */
+  /* nothing extra needed, SVG handles layout */
+
+  /* ── SEQUENCE TAB ──────────────────────── */
+  /* Sequence diagram: one shared CSS Grid template (label col + 6 equal actor cols)
+     reused for header AND every message row, so columns always line up exactly. */
+  .seq-wrap{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:0}
+  .seq-grid{display:grid;grid-template-columns:108px repeat(6,1fr);align-items:stretch}
+  .seq-header{border-bottom:1.5px solid var(--bd);padding-bottom:10px;margin-bottom:4px}
+  .seq-header-lbl{font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;align-self:end;padding-bottom:6px}
+  .actor-col{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:0 4px}
+  .actor-ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .actor-name{font-size:10px;font-weight:500;color:var(--tx);text-align:center;line-height:1.25}
+  .actor-sub{font-size:9px;color:var(--tx3);text-align:center}
+  /* message row: same grid, each row is positioned so lifelines + arrows always sit
+     in the cell centers regardless of content width */
+  .seq-msgs{position:relative}
+  .seq-row{position:relative;min-height:50px}
+  .seq-row.compact{min-height:34px}
+  .seq-row + .seq-row{border-top:0.5px solid var(--bd)}
+  .seq-row.async-row{background:rgba(250,238,218,.16)}
+  .seq-row.return-row{background:rgba(234,243,222,.16)}
+  .seq-row.note-row{background:rgba(255,250,240,.9);border-top:1.5px dashed var(--am400);border-bottom:1.5px dashed var(--am400)}
+  .msg-label-col{display:flex;flex-direction:column;justify-content:center;padding:6px 8px 6px 0;text-align:right;background:var(--bg-s)}
+  .msg-step-num{font-size:11px;font-weight:700;color:var(--tx)}
+  .msg-action{font-size:9.5px;color:var(--tx3);line-height:1.3;margin-top:1px}
+  /* lifeline: a thin dashed line down the center of every actor column, full row height */
+  .lifeline-cell{position:relative;min-width:0}
+  .lifeline-cell::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--bd2);transform:translateX(-50%)}
+  /* activation box: overlays the lifeline center while a participant is "busy" */
+  .activation{position:absolute;left:50%;top:0;bottom:0;width:9px;transform:translateX(-50%);border-radius:2px;border:1px solid var(--pu400);background:var(--pu50);z-index:2}
+  .activation.grpc{border-color:var(--bl400);background:var(--bl50)}
+  .activation.db{border-color:var(--re400);background:var(--re50)}
+  /* arrow + label container spans from one column's center to another's, positioned
+     absolutely over the grid using inline left/width set per-arrow (computed below) */
+  .seq-arrow-layer{position:absolute;inset:0;pointer-events:none}
+  .arrow-line{position:absolute;top:50%;height:0;border-top:1.5px solid var(--pu400);transform:translateY(-50%)}
+  .arrow-line::after{content:'';position:absolute;right:-1px;top:-5px;border:5px solid transparent;border-left-color:var(--pu400)}
+  .arrow-line.grpc{border-top-color:#0C447C}.arrow-line.grpc::after{border-left-color:#0C447C;border-top-width:2px}
+  .arrow-line.db{border-top-color:var(--re400)}.arrow-line.db::after{border-left-color:var(--re400)}
+  .arrow-line.async{border-top:1.5px dashed var(--am400)}.arrow-line.async::after{border-left-color:var(--am400)}
+  .arrow-line.ret{border-top:1px dashed #97C459}.arrow-line.ret::after{border-left-color:transparent;left:-1px;right:auto;border-right-color:#97C459}
+  .arrow-pill{position:absolute;top:calc(50% - 19px);background:white;border:0.5px solid var(--bd2);border-radius:4px;font-size:9px;color:var(--tx2);padding:1px 6px;white-space:nowrap;transform:translateX(-50%)}
+  .arrow-pill.pu{border-color:var(--pu200);color:var(--pu600)}
+  .arrow-pill.bl{border-color:#85B7EB;color:#0C447C}
+  .arrow-pill.re{border-color:#F5C0BF;color:var(--re600)}
+  .arrow-pill.am{border-color:#EFD08E;color:var(--am800)}
+  .arrow-sub{position:absolute;top:calc(50% + 5px);font-size:8.5px;color:var(--tx3);white-space:nowrap;transform:translateX(-50%)}
+  .arrow-ret-lbl{position:absolute;top:calc(50% - 16px);font-size:8.5px;color:#27500A;white-space:nowrap;transform:translateX(-50%)}
+  /* notes */
+  .seq-note{display:flex;align-items:flex-start;gap:6px;padding:8px 10px;font-size:10px;color:var(--am800)}
+  .seq-legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 4px 0;border-top:0.5px solid var(--bd);margin-top:10px}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2)}
+
+  /* ── GRAPH TAB ─────────────────────────── */
+  .eh{cursor:pointer}
+
+  /* ═ RIGHT PANEL ════════════════════════════════════════ */
+  .rp{border-left:0.5px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--bg-app)}
+  .panel{display:none;flex-direction:column;height:100%;overflow:hidden}
+  .panel.active{display:flex}
+  .rp-head{padding:12px 13px;border-bottom:0.5px solid var(--bd);flex-shrink:0}
+  .rp-node-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .ni{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .ni-cap {background:#EEF0FF;color:#4551B5}
+  .ni-flow{background:var(--pu50);color:var(--pu600)}
+  .ni-edge{background:var(--bg-s);color:var(--tx2)}
+  .rp-name{font-size:14px;font-weight:500;color:var(--tx)}
+  .rp-sub{font-size:11px;color:var(--tx3)}
+  .sbdg-row{display:flex;gap:5px;flex-wrap:wrap}
+  .sbdg{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:20px;border:0.5px solid}
+  .s-ok  {background:var(--gr50);color:var(--gr800);border-color:var(--gr400)}
+  .s-saga{background:var(--pu50);color:var(--pu800);border-color:var(--pu200)}
+  .s-gdpr{background:var(--re50);color:var(--re600);border-color:var(--re400)}
+  .s-neu {background:var(--bg-s);color:var(--tx2);border-color:var(--bd2)}
+  .s-rest{background:var(--pu50);color:var(--pu800);border-color:var(--pu200)}
+  .s-grpc{background:var(--bl50);color:var(--bl800);border-color:var(--bl400)}
+  .s-asb {background:var(--am50);color:var(--am800);border-color:var(--am400)}
+  .s-jdbc{background:var(--re50);color:var(--re600);border-color:var(--re400)}
+  .rp-body{flex:1;overflow-y:auto;padding-bottom:1rem}
+  .rp-sect{padding:9px 13px 4px}
+  .rp-lbl{font-size:11px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+  .kv{display:flex;gap:6px;font-size:12px;margin-bottom:3px;color:var(--tx2)}
+  .kk{color:var(--tx3);width:84px;flex-shrink:0}
+  .kv-lnk{color:var(--tx-lnk)}
+  .ep-card{margin:3px 0;padding:8px 10px;border:0.5px solid var(--bd);border-radius:0;background:var(--bg-app)}
+  .ep-call{border-left:2px solid var(--pu400)}
+  .ep-tgt {border-left:2px solid var(--te400)}
+  .ep-m{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:5px}
+  .m-post{background:var(--pu50);color:var(--pu900)}
+  .m-get {background:var(--te50);color:var(--te900)}
+  .m-rpc {background:var(--bl50);color:var(--bl800)}
+  .m-pub {background:var(--am50);color:var(--am800)}
+  .ep-path{font-size:12px;font-weight:500;color:var(--tx);font-family:var(--font-mono)}
+  .ep-op  {font-size:10px;color:var(--tx3);margin-top:2px}
+  .ep-stats{display:flex;gap:10px;margin-top:5px}
+  .ep-stat{font-size:10px;color:var(--tx2)}
+  .ep-stat b{font-weight:500;color:var(--tx)}
+  .resil-row{display:flex;gap:5px;flex-wrap:wrap;padding:0 13px 5px}
+  .rpill{font-size:10px;padding:2px 7px;border-radius:20px;border:0.5px solid}
+  .rp-on{background:var(--gr50);color:var(--gr800);border-color:var(--gr400)}
+  .rp-off{background:var(--bg-s);color:var(--tx3);border-color:var(--bd)}
+  .resp-t{width:calc(100% - 26px);margin:0 13px;border-collapse:collapse;font-size:11px}
+  .resp-t th{text-align:left;font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:3px 0;border-bottom:0.5px solid var(--bd)}
+  .resp-t td{padding:4px 4px 4px 0;color:var(--tx2);border-bottom:0.5px solid var(--bd)}
+  .resp-t tr:last-child td{border-bottom:none}
+  .c2xx{color:var(--gr800);font-weight:600}
+  .c4xx{color:var(--am800);font-weight:600}
+  .c5xx{color:var(--re600);font-weight:600}
+  .met-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 13px 5px}
+  .met-card{padding:7px 10px;background:var(--bg-s);border-radius:6px}
+  .met-v{font-size:18px;font-weight:500;color:var(--tx)}
+  .met-l{font-size:10px;color:var(--tx3);margin-top:1px}
+  .saga-note{margin:3px 13px;padding:7px 10px;border:0.5px dashed var(--bd2);border-radius:6px;background:var(--bg-s)}
+  .saga-t{font-size:11px;font-weight:500;color:var(--pu800)}
+  .saga-m{font-size:10px;color:var(--tx3);margin-top:2px}
+  .step-c{margin:3px 0;padding:6px 10px;border:0.5px solid var(--bd);background:var(--bg-app);border-radius:0}
+  .step-c.crit{border-left:2px solid var(--pu400)}
+  .step-c.asyn{border-left:2px solid var(--am400)}
+  .step-c.opt{opacity:.65}
+  .step-seq{font-size:10px;font-weight:600;color:var(--tx3);width:20px;display:inline-block}
+  .step-nm{font-size:12px;font-weight:500;color:var(--tx)}
+  .step-km{font-size:9px;padding:1px 5px;border-radius:10px;margin-left:6px}
+  .sk-sync{background:var(--pu50);color:var(--pu800)}
+  .sk-asyn{background:var(--am50);color:var(--am800)}
+  .step-meta{font-size:10px;color:var(--tx3);margin-top:2px}
+  .lnk-row{display:flex;gap:10px;padding:5px 13px 0}
+  .lnk-row a{font-size:11px;color:var(--tx-lnk);display:flex;align-items:center;gap:3px;text-decoration:none}
+  .conn-rows{padding:0 13px 6px}
+  .conn-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--bd)}
+  .conn-row:last-child{border-bottom:none}
+  .ci{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+  .conn-info{flex:1;min-width:0}
+  .conn-nm{font-size:12px;font-weight:500;color:var(--tx)}
+  .conn-mt{font-size:10px;color:var(--tx3)}
+  .ct{font-size:10px;padding:1px 5px;border-radius:4px}
+  .ct-rest{background:var(--pu50);color:var(--pu800)}
+  .ct-grpc{background:var(--bl50);color:var(--bl800)}
+  .ct-asb {background:var(--am50);color:var(--am800)}
+  .ct-jdbc{background:var(--re50);color:var(--re600)}
+  .back-btn{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx-lnk);cursor:pointer;padding:7px 13px;border-bottom:0.5px solid var(--bd);background:var(--bg-s);flex-shrink:0;user-select:none}
+  .back-btn:hover{background:var(--bg-t)}
+  .mono{font-family:var(--font-mono);font-size:10px;color:var(--pu800);line-height:1.7}
+  /* capability detail card */
+  .cap-flows-list{padding:0 13px 8px}
+  .cap-flow-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bd);cursor:pointer}
+  .cap-flow-row:last-child{border-bottom:none}
+  .cap-flow-row:hover .cap-flow-nm{color:var(--tx-lnk)}
+  .cap-flow-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .cap-flow-nm{font-size:12px;color:var(--tx);flex:1}
+  .cap-flow-mt{font-size:10px;color:var(--tx3)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ════════════════════════════════════════════
+     SIDEBAR  — Capability tree by domain
+════════════════════════════════════════════ -->
+<div class="sb">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="ti ti-topology-star-3" style="font-size:14px"></i>Service Registry</div>
+    <div class="sb-search"><i class="ti ti-search" style="font-size:13px;color:var(--tx3)"></i><input type="text" placeholder="Search flows or capabilities…"></div>
+  </div>
+
+  <!-- Domain tabs -->
+  <div class="dom-tabs">
+    <button class="dtab active" onclick="setDomain('orders',this)">Orders</button>
+    <button class="dtab" onclick="setDomain('identity',this)">Identity</button>
+    <button class="dtab" onclick="setDomain('payments',this)">Payments</button>
+    <button class="dtab" onclick="setDomain('all',this)">All</button>
+  </div>
+
+  <!-- Capability tree -->
+  <div class="cap-tree">
+
+    <!-- Capability 1: Order Management -->
+    <div class="cap-group">
+      <div class="cap-header" onclick="toggleCap('cap-om',this)">
+        <i class="ti ti-chevron-right cap-chevron open"></i>
+        <div class="cap-ic" style="background:#EEF0FF;color:#4551B5"><i class="ti ti-basket" style="font-size:10px"></i></div>
+        <span class="cap-name">Order Management</span>
+        <span class="cap-cnt">4</span>
+      </div>
+      <div id="cap-om" class="cap-flows open">
+        <div class="fi active" onclick="selFlow('place-order',this)">
+          <span class="fi-dot" style="background:#7F77DD"></span>
+          <div class="fi-info"><div class="fi-name">Place Order</div><div class="fi-meta">SAGA · 6 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="fi" onclick="selFlow('place-order-deg',this)">
+          <span class="fi-dot" style="background:#EF9F27"></span>
+          <div class="fi-info"><div class="fi-name">Place Order (Degraded)</div><div class="fi-meta">DEGRADED · 4 steps</div></div>
+          <span class="fi-bdg bdg-warn">!</span>
+        </div>
+        <div class="fi" onclick="selFlow('process-refund',this)">
+          <span class="fi-dot" style="background:#E24B4A"></span>
+          <div class="fi-info"><div class="fi-name">Process Refund</div><div class="fi-meta">COMP · 5 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="fi" onclick="selFlow('admin-report',this)">
+          <span class="fi-dot" style="background:#1D9E75"></span>
+          <div class="fi-info"><div class="fi-name">Admin Reporting</div><div class="fi-meta">HAPPY · 3 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capability 2: Fulfilment -->
+    <div class="cap-group">
+      <div class="cap-header" onclick="toggleCap('cap-ful',this)">
+        <i class="ti ti-chevron-right cap-chevron"></i>
+        <div class="cap-ic" style="background:#E1F5EE;color:#0F6E56"><i class="ti ti-truck" style="font-size:10px"></i></div>
+        <span class="cap-name">Fulfilment</span>
+        <span class="cap-cnt">2</span>
+      </div>
+      <div id="cap-ful" class="cap-flows">
+        <div class="fi" onclick="selFlow('dispatch',this)">
+          <span class="fi-dot" style="background:#1D9E75"></span>
+          <div class="fi-info"><div class="fi-name">Dispatch Order</div><div class="fi-meta">HAPPY · 4 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="fi" onclick="selFlow('return',this)">
+          <span class="fi-dot" style="background:#E24B4A"></span>
+          <div class="fi-info"><div class="fi-name">Return &amp; Restock</div><div class="fi-meta">COMP · 3 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capability 3: Notifications -->
+    <div class="cap-group">
+      <div class="cap-header" onclick="toggleCap('cap-notif',this)">
+        <i class="ti ti-chevron-right cap-chevron"></i>
+        <div class="cap-ic" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-bell" style="font-size:10px"></i></div>
+        <span class="cap-name">Notifications</span>
+        <span class="cap-cnt">3</span>
+      </div>
+      <div id="cap-notif" class="cap-flows">
+        <div class="fi" onclick="selFlow('email-confirm',this)">
+          <span class="fi-dot" style="background:#1D9E75"></span>
+          <div class="fi-info"><div class="fi-name">Order Confirmation</div><div class="fi-meta">HAPPY · 2 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="fi" onclick="selFlow('sms-alert',this)">
+          <span class="fi-dot" style="background:#1D9E75"></span>
+          <div class="fi-info"><div class="fi-name">SMS Dispatch Alert</div><div class="fi-meta">HAPPY · 2 steps</div></div>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="fi" onclick="selFlow('push-fail',this)">
+          <span class="fi-dot" style="background:#EF9F27"></span>
+          <div class="fi-info"><div class="fi-name">Push: Payment Failed</div><div class="fi-meta">HAPPY · 2 steps</div></div>
+          <span class="fi-bdg bdg-warn">!</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Cross-domain flows -->
+  <div class="xd-sect">
+    <div class="xd-lbl">Cross-domain</div>
+    <div class="xd-fi"><i class="ti ti-arrows-cross" style="font-size:11px;color:var(--tx3)"></i><span class="xd-name">Payment Auth</span><span class="fi-bdg bdg-err">SLO ✗</span></div>
+    <div class="xd-fi"><i class="ti ti-arrows-cross" style="font-size:11px;color:var(--tx3)"></i><span class="xd-name">User Onboarding</span><span class="fi-bdg bdg-ok">✓</span></div>
+  </div>
+
+  <div class="sb-foot">9 flows · 3 capabilities · Orders domain</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════ -->
+<div class="main">
+  <!-- Toolbar with breadcrumb -->
+  <div class="toolbar">
+    <div class="breadcrumb">
+      <span class="bc-link">Orders</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-link" onclick="showCapPanel()">Order Management</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-cur">Place Order</span>
+    </div>
+    <button class="tbtn active" onclick="switchTab('flow',this)">Flow</button>
+    <button class="tbtn" onclick="switchTab('sequence',this)">Sequence</button>
+    <button class="tbtn" onclick="switchTab('graph',this)">Graph</button>
+    <span class="bdg-sm">env: prod</span>
+    <i class="ti ti-adjustments-horizontal" style="font-size:15px;color:var(--tx2)"></i>
+  </div>
+
+  <!-- SLO bar -->
+  <div class="slo-bar">
+    <span class="chip chip-ok"><i class="ti ti-circle-check" style="font-size:11px"></i>p99 612ms / &lt;800ms</span>
+    <span class="chip chip-warn"><i class="ti ti-alert-triangle" style="font-size:11px"></i>err 0.4%</span>
+    <span class="chip chip-info"><i class="ti ti-git-merge" style="font-size:11px"></i>Saga · Orch</span>
+    <span class="chip chip-neu"><i class="ti ti-shield" style="font-size:11px"></i>PCI · GDPR</span>
+    <span style="flex:1"></span>
+    <span style="font-size:11px;color:var(--tx3)">3m ago</span>
+  </div>
+
+  <!-- Context bar: capability badge + variant chips -->
+  <div class="ctx-bar">
+    <div class="ctx-cap">
+      <div class="ctx-cap-ic" style="background:#EEF0FF;color:#4551B5"><i class="ti ti-basket" style="font-size:9px"></i></div>
+      <span>Order Management</span>
+    </div>
+    <span class="ctx-sep">·</span>
+    <span style="font-size:11px;color:var(--tx3)">Variants:</span>
+    <span class="vc vc-on">Happy path</span>
+    <span class="vc vc-off">Degraded</span>
+    <span class="vc vc-off">Compensating</span>
+    <span class="vc vc-off">Canary</span>
+  </div>
+
+  <div class="tab-area">
+
+    <!-- ══════════════════════════════════════
+         TAB 1: FLOW (swim-lane)
+    ══════════════════════════════════════ -->
+    <div id="tab-flow" class="tab-pane active">
+      <div class="canvas">
+        <svg viewBox="0 0 640 460" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="fs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="fa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="fd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round"/></marker>
+          </defs>
+          <!-- ── Band labels (left) ── -->
+          <text x="14" y="88" style="font-size:9px;fill:#534AB7;font-weight:500;font-family:system-ui">Critical</text>
+          <text x="14" y="100" style="font-size:9px;fill:#534AB7;font-family:system-ui">path</text>
+          <text x="14" y="254" style="font-size:9px;fill:#EF9F27;font-weight:500;font-family:system-ui">Async</text>
+          <text x="14" y="266" style="font-size:9px;fill:#EF9F27;font-family:system-ui">leg</text>
+          <!-- ── Bands ── -->
+          <rect x="60" y="58" width="566" height="54" rx="5" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+          <rect x="60" y="228" width="330" height="54" rx="5" fill="#FFFBF2" stroke="#EF9F27" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <!-- ── Capability tag ── -->
+          <rect x="68" y="36" width="116" height="16" rx="4" fill="#EEF0FF" stroke="#AFA9EC" stroke-width="0.5"/>
+          <text x="126" y="47" text-anchor="middle" style="font-size:8px;fill:#4551B5;font-family:system-ui">📦 Order Management</text>
+          <!-- ── Nodes ── -->
+          <g style="cursor:pointer">
+            <circle cx="96" cy="85" r="26" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+            <text x="96" y="82" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#085041;font-family:system-ui">Orders</text>
+            <text x="96" y="93" text-anchor="middle" style="font-size:8px;fill:#0F6E56;font-family:system-ui">API GW</text>
+            <text x="96" y="124" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">① Receive</text>
+          </g>
+          <g style="cursor:pointer">
+            <circle cx="210" cy="85" r="26" fill="#EEEDFE" stroke="#7F77DD" stroke-width="2"/>
+            <text x="210" y="82" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Order</text>
+            <text x="210" y="93" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">Service</text>
+            <text x="210" y="124" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">② Validate</text>
+          </g>
+          <g style="cursor:pointer">
+            <circle cx="328" cy="85" r="26" fill="#EEEDFE" stroke="#7F77DD" stroke-width="2"/>
+            <text x="328" y="82" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Payment</text>
+            <text x="328" y="93" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">Service</text>
+            <text x="328" y="124" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">③ Authorise</text>
+          </g>
+          <g style="cursor:pointer">
+            <circle cx="446" cy="85" r="26" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1.5"/>
+            <text x="446" y="82" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Order</text>
+            <text x="446" y="93" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">DAL</text>
+            <text x="446" y="124" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">④ Persist</text>
+          </g>
+          <g style="cursor:pointer">
+            <rect x="546" y="68" width="72" height="34" rx="6" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/>
+            <text x="582" y="83" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#501313;font-family:system-ui">Orders DB</text>
+            <text x="582" y="94" text-anchor="middle" style="font-size:8px;fill:#791F1F;font-family:system-ui">Azure SQL</text>
+            <text x="582" y="124" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">⑤ Write</text>
+          </g>
+          <!-- Async nodes -->
+          <g style="cursor:pointer">
+            <rect x="64" y="242" width="84" height="34" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="1"/>
+            <text x="106" y="257" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#412402;font-family:system-ui">orders-bus</text>
+            <text x="106" y="268" text-anchor="middle" style="font-size:8px;fill:#633806;font-family:system-ui">ASB OUTBOX</text>
+            <text x="106" y="296" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">⑥a Publish</text>
+          </g>
+          <g style="cursor:pointer">
+            <circle cx="226" cy="259" r="24" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+            <text x="226" y="256" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#2C2C2A;font-family:system-ui">Notif.</text>
+            <text x="226" y="267" text-anchor="middle" style="font-size:8px;fill:#5F5E5A;font-family:system-ui">Service</text>
+            <text x="226" y="296" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">⑥b Notify</text>
+          </g>
+          <g style="cursor:pointer">
+            <circle cx="352" cy="259" r="24" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+            <text x="352" y="256" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#2C2C2A;font-family:system-ui">Analytics</text>
+            <text x="352" y="267" text-anchor="middle" style="font-size:8px;fill:#5F5E5A;font-family:system-ui">Service</text>
+            <text x="352" y="296" text-anchor="middle" style="font-size:9px;fill:#888780;font-family:system-ui">⑥c Track</text>
+          </g>
+          <!-- Critical edges -->
+          <line x1="122" y1="85" x2="178" y2="85" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#fs)"/>
+          <line x1="236" y1="85" x2="296" y2="85" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#fs)"/>
+          <line x1="354" y1="85" x2="414" y2="85" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#fs)"/>
+          <line x1="472" y1="85" x2="542" y2="85" stroke="#E24B4A" stroke-width="1" marker-end="url(#fd)"/>
+          <!-- Latency chips -->
+          <rect x="128" y="73" width="40" height="13" rx="3" fill="white" stroke="#E0DED8" stroke-width="0.5"/><text x="148" y="82" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:system-ui">45ms</text>
+          <rect x="242" y="73" width="46" height="13" rx="3" fill="white" stroke="#E0DED8" stroke-width="0.5"/><text x="265" y="82" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:system-ui">210ms</text>
+          <rect x="360" y="73" width="46" height="13" rx="3" fill="white" stroke="#E0DED8" stroke-width="0.5"/><text x="383" y="82" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:system-ui">320ms</text>
+          <rect x="478" y="73" width="40" height="13" rx="3" fill="white" stroke="#E0DED8" stroke-width="0.5"/><text x="498" y="82" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:system-ui">37ms</text>
+          <!-- Async drop -->
+          <path d="M446 111 Q446 220 108 242" fill="none" stroke="#EF9F27" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#fa)"/>
+          <text x="288" y="178" style="font-size:8px;fill:#EF9F27;font-family:system-ui">ASB outbox relay</text>
+          <!-- Async fan-out -->
+          <line x1="148" y1="259" x2="198" y2="259" stroke="#EF9F27" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#fa)"/>
+          <line x1="148" y1="259" x2="324" y2="259" stroke="#EF9F27" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#fa)"/>
+          <!-- Legend -->
+          <g transform="translate(62,348)">
+            <rect x="0" y="0" width="9" height="2" fill="#7F77DD" rx="1"/><text x="13" y="3" style="font-size:8px;fill:#534AB7;font-family:system-ui">Sync · critical</text>
+            <line x1="0" y1="13" x2="9" y2="13" stroke="#EF9F27" stroke-width="1" stroke-dasharray="3 3"/><text x="13" y="16" style="font-size:8px;fill:#EF9F27;font-family:system-ui">Async non-blocking</text>
+            <line x1="0" y1="26" x2="9" y2="26" stroke="#E24B4A" stroke-width="1"/><text x="13" y="29" style="font-size:8px;fill:#E24B4A;font-family:system-ui">DB write</text>
+          </g>
+          <!-- SLO callout -->
+          <rect x="392" y="340" width="192" height="54" rx="8" fill="white" stroke="#CCCAC3" stroke-width="0.5"/>
+          <text x="488" y="360" text-anchor="middle" style="font-size:10px;font-weight:500;fill:#1A1A18;font-family:system-ui">End-to-end SLO</text>
+          <text x="488" y="380" text-anchor="middle" style="font-size:20px;font-weight:600;fill:#27500A;font-family:system-ui">p99 &lt; 800ms</text>
+          <text x="488" y="390" text-anchor="middle" style="font-size:8px;fill:#888780;font-family:system-ui">current 612ms · 24% budget left</text>
+        </svg>
+        <div class="hint"><i class="ti ti-info-circle" style="font-size:11px"></i> Click any node to inspect. Switch to Sequence for message-level detail.</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB 2: SEQUENCE
+    ══════════════════════════════════════ -->
+    <div id="tab-sequence" class="tab-pane">
+      <div class="seq-wrap">
+
+        <!-- Header row: label col + 6 actor columns, using the shared grid -->
+        <div class="seq-grid seq-header">
+          <div class="seq-header-lbl">Step</div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#E1F5EE;color:#085041"><i class="ti ti-shield-check" style="font-size:15px"></i></div>
+            <div class="actor-name">Orders<br>API GW</div>
+            <div class="actor-sub">REST · APIM</div>
+          </div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-server" style="font-size:15px"></i></div>
+            <div class="actor-name">Order<br>Service</div>
+            <div class="actor-sub">orchestrator</div>
+          </div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-credit-card" style="font-size:15px"></i></div>
+            <div class="actor-name">Payment<br>Service</div>
+            <div class="actor-sub">REST · PCI</div>
+          </div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#E6F1FB;color:#0C447C"><i class="ti ti-database" style="font-size:15px"></i></div>
+            <div class="actor-name">Order<br>DAL</div>
+            <div class="actor-sub">gRPC server</div>
+          </div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#FCEBEB;color:#791F1F"><i class="ti ti-table" style="font-size:15px"></i></div>
+            <div class="actor-name">Orders<br>DB</div>
+            <div class="actor-sub">Azure SQL</div>
+          </div>
+          <div class="actor-col">
+            <div class="actor-ic" style="background:#FAEEDA;color:#633806"><i class="ti ti-topology-ring" style="font-size:15px"></i></div>
+            <div class="actor-name">orders-<br>bus</div>
+            <div class="actor-sub">ASB OUTBOX</div>
+          </div>
+        </div>
+
+        <!-- Message rows. Every row reuses the same 7-column grid (label + 6 actors)
+             so lifelines and activations always sit exactly under their actor header.
+             Arrows are positioned with grid-column-start/end spans, not percentages. -->
+        <div class="seq-msgs">
+
+          <!-- ① GW -> Order Svc : REST -->
+          <div class="seq-grid seq-row">
+            <div class="msg-label-col"><div class="msg-step-num">①</div><div class="msg-action">Receive &amp; route</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell">
+              <div class="activation" style="left:0%"></div>
+            </div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <!-- grid is 108px + 6×1fr; arrow spans actor col 1 (GW) center to col 2 (Order Svc) center -->
+              <div class="arrow-line" style="left:calc(108px + 1*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(((100% - 108px)/6))"></div>
+              <div class="arrow-pill pu" style="left:calc(108px + 1.5*((100% - 108px)/6))">POST /orders</div>
+              <div class="arrow-sub" style="left:calc(108px + 1.5*((100% - 108px)/6))">REST · OAuth2 · 45ms</div>
+            </div>
+          </div>
+
+          <!-- ② Order Svc -> Payment Svc : REST -->
+          <div class="seq-grid seq-row">
+            <div class="msg-label-col"><div class="msg-step-num">②</div><div class="msg-action">Authorise payment</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"><div class="activation"></div></div>
+            <div class="lifeline-cell"><div class="activation"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line" style="left:calc(108px + 2*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(((100% - 108px)/6))"></div>
+              <div class="arrow-pill pu" style="left:calc(108px + 2.5*((100% - 108px)/6))">POST /v1/authorisations</div>
+              <div class="arrow-sub" style="left:calc(108px + 2.5*((100% - 108px)/6))">REST · mTLS · 320ms</div>
+            </div>
+          </div>
+
+          <!-- return: 200 AuthResult -->
+          <div class="seq-grid seq-row compact return-row">
+            <div class="msg-label-col" style="background:var(--gr50)"><div class="msg-action" style="color:#27500A;font-weight:500">↩ 200 OK</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"><div class="activation" style="opacity:.4"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line ret" style="left:calc(108px + 1*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(((100% - 108px)/6))"></div>
+              <div class="arrow-ret-lbl" style="left:calc(108px + 2.5*((100% - 108px)/6))">AuthResult</div>
+            </div>
+          </div>
+
+          <!-- ③ Order Svc -> Order DAL : gRPC -->
+          <div class="seq-grid seq-row">
+            <div class="msg-label-col"><div class="msg-step-num">③</div><div class="msg-action">Persist order</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"><div class="activation"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"><div class="activation grpc"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line grpc" style="left:calc(108px + 2*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(2*((100% - 108px)/6))"></div>
+              <div class="arrow-pill bl" style="left:calc(108px + 3.5*((100% - 108px)/6))">PersistOrder</div>
+              <div class="arrow-sub" style="left:calc(108px + 3.5*((100% - 108px)/6))">gRPC unary · mTLS · 31ms</div>
+            </div>
+          </div>
+
+          <!-- ④ Order DAL -> Orders DB : JDBC -->
+          <div class="seq-grid seq-row">
+            <div class="msg-label-col"><div class="msg-step-num">④</div><div class="msg-action">Write to DB</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"><div class="activation grpc"></div></div>
+            <div class="lifeline-cell"><div class="activation db"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line db" style="left:calc(108px + 4*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(((100% - 108px)/6))"></div>
+              <div class="arrow-pill re" style="left:calc(108px + 4.5*((100% - 108px)/6))">INSERT INTO orders…</div>
+              <div class="arrow-sub" style="left:calc(108px + 4.5*((100% - 108px)/6))">JDBC · Managed ID · 12ms</div>
+            </div>
+          </div>
+
+          <!-- return: 201 Created propagates back to GW -->
+          <div class="seq-grid seq-row compact return-row">
+            <div class="msg-label-col" style="background:var(--gr50)"><div class="msg-action" style="color:#27500A;font-weight:500">↩ 201 Created</div></div>
+            <div class="lifeline-cell"><div class="activation" style="opacity:.4"></div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line ret" style="left:calc(108px + 0*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(((100% - 108px)/6))"></div>
+              <div class="arrow-ret-lbl" style="left:calc(108px + 1.5*((100% - 108px)/6))">propagates up the chain</div>
+            </div>
+          </div>
+
+          <!-- Async note row -->
+          <div class="seq-grid seq-row note-row">
+            <div class="msg-label-col" style="background:transparent"></div>
+            <div style="grid-column:2 / -1" class="seq-note">
+              <i class="ti ti-clock-bolt" style="font-size:13px;flex-shrink:0;margin-top:1px"></i>
+              <span><b>Async leg — non-blocking.</b> After 201 is returned to the caller, the outbox relay publishes <code style="font-size:9px;background:rgba(0,0,0,.06);padding:1px 3px;border-radius:3px">OrderPlaced</code> to orders-bus. Notification and Analytics react independently; neither affects e2e latency.</span>
+            </div>
+          </div>
+
+          <!-- ⑥a Order DAL -> orders-bus : ASB publish -->
+          <div class="seq-grid seq-row async-row">
+            <div class="msg-label-col"><div class="msg-step-num">⑥a</div><div class="msg-action">Publish event</div></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="lifeline-cell"></div>
+            <div class="seq-arrow-layer">
+              <div class="arrow-line async" style="left:calc(108px + 4*((100% - 108px)/6) + ((100% - 108px)/12)); width:calc(2*((100% - 108px)/6))"></div>
+              <div class="arrow-pill am" style="left:calc(108px + 5.5*((100% - 108px)/6))">OrderPlaced event</div>
+              <div class="arrow-sub" style="left:calc(108px + 5.5*((100% - 108px)/6))">ASB Topic · Avro v2.1 · OUTBOX relay</div>
+            </div>
+          </div>
+
+          <!-- ⑥b/c fan-out consumers, shown as a label-only row referencing the bus -->
+          <div class="seq-grid seq-row async-row" style="min-height:58px">
+            <div class="msg-label-col"><div class="msg-step-num">⑥b/c</div><div class="msg-action">Fan-out subscribers</div></div>
+            <div style="grid-column:2 / -1;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px 12px">
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#633806"><i class="ti ti-bell" style="font-size:12px"></i> Notification Service — <code style="font-size:9px;background:rgba(0,0,0,.06);padding:1px 3px;border-radius:3px">notifications</code> subscription · optional</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#633806"><i class="ti ti-chart-bar" style="font-size:12px"></i> Analytics Service — <code style="font-size:9px;background:rgba(0,0,0,.06);padding:1px 3px;border-radius:3px">analytics</code> subscription · auto-discovered</div>
+            </div>
+          </div>
+
+        </div><!-- /seq-msgs -->
+
+        <!-- Legend -->
+        <div class="seq-legend">
+          <div class="leg-item"><div style="width:18px;height:0;border-top:1.5px solid #7F77DD"></div>Sync REST call</div>
+          <div class="leg-item"><div style="width:18px;height:0;border-top:2px solid #0C447C"></div>gRPC call</div>
+          <div class="leg-item"><div style="width:18px;height:0;border-top:1.5px solid #E24B4A"></div>DB write (JDBC)</div>
+          <div class="leg-item"><div style="width:18px;height:0;border-top:1.5px dashed #EF9F27"></div>Async publish</div>
+          <div class="leg-item"><div style="width:18px;height:0;border-top:1px dashed #97C459"></div>Response return</div>
+          <div class="leg-item"><div style="width:9px;height:16px;background:#EEEDFE;border:1px solid #7F77DD;border-radius:2px"></div>Activation (busy)</div>
+        </div>
+
+      </div><!-- /seq-wrap -->
+    </div>
+
+    <div id="tab-graph" class="tab-pane">
+      <div class="canvas">
+        <svg viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="gp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="gb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#0C447C" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="gr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="ga" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round"/></marker>
+            <marker id="gd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#CCCAC3" stroke-width="1.5" stroke-linecap="round"/></marker>
+          </defs>
+          <!-- Domain bbox -->
+          <rect x="8" y="20" width="624" height="278" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+          <text x="16" y="15" style="font-size:9px;fill:#888780;font-family:system-ui">Orders domain</text>
+          <!-- Capability badge in graph -->
+          <rect x="16" y="26" width="114" height="16" rx="4" fill="#EEF0FF" stroke="#AFA9EC" stroke-width="0.5"/>
+          <text x="73" y="37" text-anchor="middle" style="font-size:8px;fill:#4551B5;font-family:system-ui">📦 Order Management</text>
+          <!-- Cross-domain bbox -->
+          <rect x="8" y="316" width="624" height="148" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+          <text x="16" y="312" style="font-size:9px;fill:#888780;font-family:system-ui">Cross-domain consumers</text>
+          <!-- Dimmed -->
+          <g opacity="0.27"><circle cx="544" cy="194" r="29" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1.5"/><text x="544" y="191" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Inventory</text><text x="544" y="202" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">Service</text></g>
+          <g opacity="0.27"><rect x="454" y="258" width="76" height="32" rx="6" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1"/><text x="492" y="274" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#501313;font-family:system-ui">Audit DB</text><text x="492" y="284" text-anchor="middle" style="font-size:8px;fill:#791F1F;font-family:system-ui">Cosmos</text></g>
+          <line x1="398" y1="104" x2="516" y2="168" stroke="#CCCAC3" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#gd)" opacity="0.3"/>
+          <line x1="252" y1="246" x2="452" y2="268" stroke="#CCCAC3" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#gd)" opacity="0.3"/>
+          <!-- ── Flow nodes ── -->
+          <!-- ① API GW -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <circle cx="86" cy="104" r="34" fill="none" stroke="#1D9E75" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"/>
+            <circle cx="86" cy="104" r="28" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/>
+            <text x="86" y="100" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#085041;font-family:system-ui">Orders</text>
+            <text x="86" y="111" text-anchor="middle" style="font-size:8px;fill:#0F6E56;font-family:system-ui">API GW</text>
+            <circle cx="108" cy="79" r="8" fill="#1D9E75"/>
+            <text x="108" y="82" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">①</text>
+          </g>
+          <!-- ② Order Svc (orchestrator) -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <circle cx="240" cy="104" r="34" fill="none" stroke="#7F77DD" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"/>
+            <circle cx="240" cy="104" r="28" fill="#EEEDFE" stroke="#7F77DD" stroke-width="3"/>
+            <text x="240" y="100" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Order</text>
+            <text x="240" y="111" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">Service</text>
+            <text x="240" y="126" text-anchor="middle" style="font-size:7px;fill:#7F77DD;font-family:system-ui">orchestrator</text>
+            <circle cx="262" cy="79" r="8" fill="#7F77DD"/>
+            <text x="262" y="82" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">②</text>
+          </g>
+          <!-- ③ Payment Svc -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <circle cx="398" cy="104" r="34" fill="none" stroke="#7F77DD" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"/>
+            <circle cx="398" cy="104" r="28" fill="#EEEDFE" stroke="#7F77DD" stroke-width="2"/>
+            <text x="398" y="100" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Payment</text>
+            <text x="398" y="111" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">Service</text>
+            <circle cx="420" cy="79" r="8" fill="#7F77DD"/>
+            <text x="420" y="82" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">③</text>
+          </g>
+          <!-- ④ Order DAL -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <circle cx="240" cy="238" r="34" fill="none" stroke="#7F77DD" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"/>
+            <circle cx="240" cy="238" r="28" fill="#EEEDFE" stroke="#7F77DD" stroke-width="1.5"/>
+            <text x="240" y="234" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#26215C;font-family:system-ui">Order DAL</text>
+            <text x="240" y="245" text-anchor="middle" style="font-size:8px;fill:#3C3489;font-family:system-ui">gRPC server</text>
+            <rect x="210" y="256" width="60" height="11" rx="3" fill="#AFA9EC"/>
+            <text x="240" y="264" text-anchor="middle" style="font-size:7px;fill:#26215C;font-family:system-ui">outbox relay</text>
+            <circle cx="262" cy="213" r="8" fill="#7F77DD"/>
+            <text x="262" y="216" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">④</text>
+          </g>
+          <!-- ⑤ Orders DB -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <rect x="80" y="224" width="84" height="34" rx="6" fill="#FCEBEB" stroke="#E24B4A" stroke-width="1.5"/>
+            <text x="122" y="239" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#501313;font-family:system-ui">Orders DB</text>
+            <text x="122" y="250" text-anchor="middle" style="font-size:8px;fill:#791F1F;font-family:system-ui">Azure SQL</text>
+            <circle cx="148" cy="222" r="8" fill="#E24B4A"/>
+            <text x="148" y="225" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">⑤</text>
+          </g>
+          <!-- ⑥a orders-bus -->
+          <g style="cursor:pointer" onclick="selNode()">
+            <rect x="330" y="292" width="100" height="44" rx="7" fill="#FAEEDA" stroke="#EF9F27" stroke-width="1.5"/>
+            <text x="380" y="311" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#412402;font-family:system-ui">orders-bus</text>
+            <text x="380" y="323" text-anchor="middle" style="font-size:8px;fill:#633806;font-family:system-ui">ASB Premium</text>
+            <rect x="336" y="328" width="88" height="10" rx="3" fill="none" stroke="#EF9F27" stroke-width="0.5"/>
+            <text x="380" y="335" text-anchor="middle" style="font-size:7px;fill:#633806;font-family:system-ui">order-events [TOPIC]</text>
+            <circle cx="414" cy="290" r="8" fill="#EF9F27"/>
+            <text x="414" y="293" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">⑥a</text>
+          </g>
+          <!-- Cross-domain -->
+          <g style="cursor:pointer" onclick="selNode()" opacity="0.85">
+            <circle cx="166" cy="388" r="26" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+            <text x="166" y="385" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#2C2C2A;font-family:system-ui">Notif.</text>
+            <text x="166" y="396" text-anchor="middle" style="font-size:8px;fill:#5F5E5A;font-family:system-ui">Service</text>
+            <circle cx="186" cy="365" r="7" fill="#EF9F27"/>
+            <text x="186" y="368" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">⑥b</text>
+          </g>
+          <g style="cursor:pointer" onclick="selNode()" opacity="0.85">
+            <circle cx="370" cy="388" r="26" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+            <text x="370" y="385" text-anchor="middle" style="font-size:9px;font-weight:500;fill:#2C2C2A;font-family:system-ui">Analytics</text>
+            <text x="370" y="396" text-anchor="middle" style="font-size:8px;fill:#5F5E5A;font-family:system-ui">Service</text>
+            <circle cx="390" cy="365" r="7" fill="#EF9F27"/>
+            <text x="390" y="368" text-anchor="middle" style="font-size:7px;fill:white;font-weight:700;font-family:system-ui">⑥c</text>
+          </g>
+          <!-- Edges -->
+          <g class="eh" onclick="selEdge('e1')"><line x1="114" y1="104" x2="206" y2="104" stroke="transparent" stroke-width="14"/><line id="el-e1" x1="114" y1="104" x2="206" y2="104" stroke="#7F77DD" stroke-width="2" marker-end="url(#gp)"/><rect x="122" y="91" width="66" height="14" rx="4" fill="white" stroke="#AFA9EC" stroke-width="0.5"/><text x="155" y="101" text-anchor="middle" style="font-size:8px;fill:#534AB7;font-family:system-ui">POST /orders</text></g>
+          <g class="eh" onclick="selEdge('e2')"><line x1="268" y1="104" x2="364" y2="104" stroke="transparent" stroke-width="14"/><line id="el-e2" x1="268" y1="104" x2="364" y2="104" stroke="#7F77DD" stroke-width="2" marker-end="url(#gp)"/><rect x="274" y="91" width="60" height="14" rx="4" fill="white" stroke="#AFA9EC" stroke-width="0.5"/><text x="304" y="101" text-anchor="middle" style="font-size:8px;fill:#534AB7;font-family:system-ui">POST /auth</text></g>
+          <g class="eh" onclick="selEdge('e3')"><line x1="240" y1="132" x2="240" y2="204" stroke="transparent" stroke-width="14"/><line id="el-e3" x1="240" y1="132" x2="240" y2="204" stroke="#0C447C" stroke-width="2" marker-end="url(#gb)"/><rect x="246" y="158" width="60" height="14" rx="4" fill="white" stroke="#85B7EB" stroke-width="0.5"/><text x="276" y="168" text-anchor="middle" style="font-size:8px;fill:#0C447C;font-family:system-ui">PersistOrder</text></g>
+          <g class="eh" onclick="selEdge('e4')"><line x1="212" y1="238" x2="168" y2="238" stroke="transparent" stroke-width="14"/><line id="el-e4" x1="212" y1="238" x2="168" y2="238" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#gr)"/><rect x="168" y="226" width="28" height="13" rx="3" fill="white" stroke="#F5C0BF" stroke-width="0.5"/><text x="182" y="235" text-anchor="middle" style="font-size:8px;fill:#A32D2D;font-family:system-ui">SQL</text></g>
+          <g class="eh" onclick="selEdge('e5')"><path d="M268 252 Q308 274 340 296" fill="none" stroke="transparent" stroke-width="14"/><path id="el-e5" d="M268 252 Q308 274 340 296" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ga)"/><rect x="282" y="262" width="50" height="13" rx="3" fill="white" stroke="#EFD08E" stroke-width="0.5"/><text x="307" y="271" text-anchor="middle" style="font-size:8px;fill:#633806;font-family:system-ui">OrderPlaced</text></g>
+          <line x1="350" y1="334" x2="188" y2="364" stroke="#EF9F27" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ga)" opacity="0.65"/>
+          <line x1="382" y1="336" x2="374" y2="364" stroke="#EF9F27" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ga)" opacity="0.65"/>
+          <!-- Legend -->
+          <g transform="translate(468,328)">
+            <rect x="0" y="0" width="154" height="118" rx="6" fill="white" stroke="#E0DED8" stroke-width="0.5"/>
+            <text x="10" y="15" style="font-size:8px;font-weight:500;fill:#1A1A18;font-family:system-ui">Legend</text>
+            <line x1="10" y1="26" x2="24" y2="26" stroke="#7F77DD" stroke-width="2"/><text x="28" y="29" style="font-size:7px;fill:#534AB7;font-family:system-ui">REST — click edge for endpoints</text>
+            <line x1="10" y1="39" x2="24" y2="39" stroke="#0C447C" stroke-width="2"/><text x="28" y="42" style="font-size:7px;fill:#0C447C;font-family:system-ui">gRPC (in flow)</text>
+            <line x1="10" y1="52" x2="24" y2="52" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3"/><text x="28" y="55" style="font-size:7px;fill:#633806;font-family:system-ui">Async / ASB</text>
+            <line x1="10" y1="65" x2="24" y2="65" stroke="#CCCAC3" stroke-width="1" stroke-dasharray="3 3"/><text x="28" y="68" style="font-size:7px;fill:#888780;font-family:system-ui">Not in this flow</text>
+            <circle cx="17" cy="81" r="4" fill="none" stroke="#7F77DD" stroke-width="1.5"/><text x="28" y="84" style="font-size:7px;fill:#7F77DD;font-family:system-ui">In-flow node</text>
+            <circle cx="17" cy="96" r="5" fill="white" stroke="#7F77DD" stroke-width="3"/><text x="28" y="99" style="font-size:7px;fill:#7F77DD;font-family:system-ui">Orchestrator</text>
+            <rect x="10" y="107" width="10" height="8" rx="2" fill="#EEF0FF" stroke="#AFA9EC" stroke-width="0.5"/><text x="28" y="114" style="font-size:7px;fill:#4551B5;font-family:system-ui">Capability tag</text>
+          </g>
+        </svg>
+        <div class="hint"><i class="ti ti-hand-click" style="font-size:11px"></i>Click edge for API endpoint details · Click Flow or Sequence tab for other views</div>
+      </div>
+    </div>
+
+  </div><!-- /tab-area -->
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════════
+     RIGHT PANEL
+════════════════════════════════════════════ -->
+<div class="rp">
+
+  <!-- Panel: Capability summary -->
+  <div id="panel-cap" class="panel">
+    <div class="rp-head">
+      <div class="rp-node-row">
+        <div class="ni ni-cap"><i class="ti ti-basket"></i></div>
+        <div><div class="rp-name">Order Management</div><div class="rp-sub">BusinessCapability · Orders domain</div></div>
+      </div>
+      <div class="sbdg-row">
+        <span class="sbdg s-ok"><i class="ti ti-circle-check" style="font-size:11px"></i>4/4 flows healthy</span>
+        <span class="sbdg s-neu">Orders</span>
+      </div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect">
+        <div class="rp-lbl">Capability</div>
+        <div class="kv"><span class="kk">Domain</span><span>Orders</span></div>
+        <div class="kv"><span class="kk">Owner</span><span>Orders Squad</span></div>
+        <div class="kv"><span class="kk">Product</span><span>Sarah M.</span></div>
+        <div class="kv"><span class="kk">Epic</span><span class="kv-lnk">ORD-CAP-01</span></div>
+        <div class="kv"><span class="kk">Description</span><span style="color:var(--tx)">Enables customers to submit, track, and manage orders end-to-end.</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Flows in this capability</div></div>
+      <div class="cap-flows-list">
+        <div class="cap-flow-row" onclick="selFlow('place-order',null)">
+          <span class="cap-flow-dot" style="background:#7F77DD"></span>
+          <span class="cap-flow-nm">Place Order</span>
+          <span class="cap-flow-mt">SAGA · 6 steps</span>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="cap-flow-row" onclick="selFlow('place-order-deg',null)">
+          <span class="cap-flow-dot" style="background:#EF9F27"></span>
+          <span class="cap-flow-nm">Place Order (Degraded)</span>
+          <span class="cap-flow-mt">DEGRADED · 4 steps</span>
+          <span class="fi-bdg bdg-warn">!</span>
+        </div>
+        <div class="cap-flow-row" onclick="selFlow('process-refund',null)">
+          <span class="cap-flow-dot" style="background:#E24B4A"></span>
+          <span class="cap-flow-nm">Process Refund</span>
+          <span class="cap-flow-mt">COMP · 5 steps</span>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+        <div class="cap-flow-row" onclick="selFlow('admin-report',null)">
+          <span class="cap-flow-dot" style="background:#1D9E75"></span>
+          <span class="cap-flow-nm">Admin Reporting</span>
+          <span class="cap-flow-mt">HAPPY · 3 steps</span>
+          <span class="fi-bdg bdg-ok">✓</span>
+        </div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Observability</div></div>
+      <div class="met-grid">
+        <div class="met-card"><div class="met-v" style="color:#27500A">99.7%</div><div class="met-l">avg success rate</div></div>
+        <div class="met-card"><div class="met-v">4</div><div class="met-l">active flows</div></div>
+        <div class="met-card"><div class="met-v">8.4k/h</div><div class="met-l">total executions</div></div>
+        <div class="met-card"><div class="met-v" style="color:#633806">1</div><div class="met-l">SLO at risk</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Flow summary (default) -->
+  <div id="panel-flow" class="panel active">
+    <div class="rp-head">
+      <div class="rp-node-row">
+        <div class="ni ni-flow"><i class="ti ti-git-merge"></i></div>
+        <div><div class="rp-name">Place Order</div><div class="rp-sub">BusinessFlow · Order Management</div></div>
+      </div>
+      <div class="sbdg-row">
+        <span class="sbdg s-ok"><i class="ti ti-circle-check" style="font-size:11px"></i>SLO met</span>
+        <span class="sbdg s-saga">SAGA</span>
+        <span class="sbdg s-gdpr">GDPR</span>
+        <span class="sbdg s-neu">PCI</span>
+      </div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect">
+        <div class="rp-lbl">Ownership</div>
+        <div class="kv"><span class="kk">Capability</span><span style="color:var(--tx-lnk);cursor:pointer" onclick="showCapPanel()">Order Management</span></div>
+        <div class="kv"><span class="kk">Team</span><span>Orders Squad</span></div>
+        <div class="kv"><span class="kk">Owner</span><span>Sarah M.</span></div>
+        <div class="kv"><span class="kk">Epic</span><span class="kv-lnk">ORD-4421</span></div>
+        <div class="kv"><span class="kk">E2E SLO</span><span>p99 &lt; 800ms</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Saga</div></div>
+      <div class="saga-note">
+        <div class="saga-t"><i class="ti ti-git-merge" style="font-size:11px;margin-right:3px"></i>Orchestration · Order Service</div>
+        <div class="saga-m">2 compensating transactions · fallback disabled</div>
+      </div>
+      <div class="rp-sect">
+        <div class="rp-lbl">Steps</div>
+        <div class="step-c crit"><div style="display:flex;align-items:center"><span class="step-seq">①</span><span class="step-nm">Receive request</span><span class="step-km sk-sync">SYNC</span></div><div class="step-meta">API Gateway · REST · p99 45ms</div></div>
+        <div class="step-c crit"><div style="display:flex;align-items:center"><span class="step-seq">②</span><span class="step-nm">Authorise payment</span><span class="step-km sk-sync">SYNC</span></div><div class="step-meta">Payment Service · REST · p99 320ms</div></div>
+        <div class="step-c crit"><div style="display:flex;align-items:center"><span class="step-seq">③</span><span class="step-nm">Persist order</span><span class="step-km sk-sync">SYNC</span></div><div class="step-meta">Order DAL → DB · gRPC · p99 37ms</div></div>
+        <div class="step-c asyn"><div style="display:flex;align-items:center"><span class="step-seq">⑥a</span><span class="step-nm">Publish event</span><span class="step-km sk-asyn">ASYNC</span></div><div class="step-meta">orders-bus · OUTBOX relay</div></div>
+        <div class="step-c asyn opt"><div style="display:flex;align-items:center"><span class="step-seq">⑥b</span><span class="step-nm">Send confirmation</span><span class="step-km sk-asyn">ASYNC</span></div><div class="step-meta">Notification Service · optional</div></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Observability</div></div>
+      <div class="met-grid">
+        <div class="met-card"><div class="met-v" style="color:#27500A">612ms</div><div class="met-l">p99 e2e</div></div>
+        <div class="met-card"><div class="met-v" style="color:#27500A">99.6%</div><div class="met-l">success rate</div></div>
+        <div class="met-card"><div class="met-v">3.2k/h</div><div class="met-l">executions</div></div>
+        <div class="met-card"><div class="met-v" style="color:#633806">4</div><div class="met-l">rollbacks 7d</div></div>
+      </div>
+      <div class="lnk-row" style="margin-top:8px">
+        <a href="#"><i class="ti ti-chart-bar" style="font-size:11px"></i> Dashboard</a>
+        <a href="#"><i class="ti ti-route" style="font-size:11px"></i> Traces</a>
+        <a href="#"><i class="ti ti-file-text" style="font-size:11px"></i> Runbook</a>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Nodes in flow</div></div>
+      <div class="conn-rows">
+        <div class="conn-row"><div class="ci" style="background:#E1F5EE;color:#0F6E56"><i class="ti ti-shield-check"></i></div><div class="conn-info"><div class="conn-nm">Orders API GW</div><div class="conn-mt">step ① · critical · APIM</div></div><span class="ct ct-rest">REST</span></div>
+        <div class="conn-row"><div class="ci" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-server"></i></div><div class="conn-info"><div class="conn-nm">Order Service</div><div class="conn-mt">steps ②④ · orchestrator</div></div><span class="ct ct-rest">REST</span></div>
+        <div class="conn-row"><div class="ci" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-credit-card"></i></div><div class="conn-info"><div class="conn-nm">Payment Service</div><div class="conn-mt">step ③ · compensable</div></div><span class="ct ct-grpc">gRPC</span></div>
+        <div class="conn-row"><div class="ci" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-topology-ring"></i></div><div class="conn-info"><div class="conn-nm">orders-bus</div><div class="conn-mt">step ⑥a · ASB OUTBOX</div></div><span class="ct ct-asb">ASB</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: E1 GW → Order Svc -->
+  <div id="panel-e1" class="panel">
+    <div class="back-btn" onclick="selNode()"><i class="ti ti-arrow-left" style="font-size:13px"></i> Back to flow</div>
+    <div class="rp-head">
+      <div class="rp-node-row"><div class="ni ni-edge"><i class="ti ti-arrows-right-left"></i></div><div><div class="rp-name">GW → Order Svc</div><div class="rp-sub">RegistryEdge · step ①→②</div></div></div>
+      <div class="sbdg-row"><span class="sbdg s-rest">REST</span><span class="sbdg s-ok">active</span><span class="sbdg s-neu">OAuth2</span></div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect"><div class="rp-lbl">APIEdgeDetails</div>
+        <div class="kv"><span class="kk">Pattern</span><span>REQUEST_RESPONSE</span></div>
+        <div class="kv"><span class="kk">Auth</span><span>OAuth2 Bearer</span></div>
+        <div class="kv"><span class="kk">TLS</span><span>TLS 1.3</span></div>
+        <div class="kv"><span class="kk">Timeout</span><span>5 000ms</span></div>
+        <div class="kv"><span class="kk">Avg latency</span><span>41ms · 128k traces</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Resilience</div></div>
+      <div class="resil-row"><span class="rpill rp-on">✓ Circuit breaker</span><span class="rpill rp-on">✓ Retry ×3</span><span class="rpill rp-off">✗ Bulkhead</span></div>
+      <div class="rp-sect"><div class="rp-lbl">Calling endpoint — APIEndpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-call"><div><span class="ep-m m-post">POST</span><span class="ep-path">/orders</span></div><div class="ep-op">createOrder · API Gateway · v2</div><div class="ep-stats"><div class="ep-stat">p99 <b>45ms</b></div><div class="ep-stat">calls/d <b>42k</b></div><div class="ep-stat">err <b>0.1%</b></div></div></div></div>
+      <div class="rp-sect"><div class="rp-lbl">Target endpoint — APIEndpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-tgt"><div><span class="ep-m m-post">POST</span><span class="ep-path">/api/v2/orders</span></div><div class="ep-op">ingestOrder · Order Service · v2</div><div class="ep-stats"><div class="ep-stat">p99 <b>210ms</b></div><div class="ep-stat">limit <b>500/s</b></div><div class="ep-stat">err <b>0.2%</b></div></div></div></div>
+      <div class="rp-sect"><div class="rp-lbl">Response codes</div></div>
+      <table class="resp-t"><tr><th>Code</th><th>Schema</th><th>Description</th></tr><tr><td class="c2xx">201</td><td>OrderCreated</td><td>Accepted</td></tr><tr><td class="c4xx">400</td><td>ValidationError</td><td>Bad payload</td></tr><tr><td class="c5xx">503</td><td>Unavailable</td><td>CB open</td></tr></table>
+      <div class="lnk-row" style="margin-top:10px"><a href="#"><i class="ti ti-file-code" style="font-size:11px"></i> OpenAPI spec</a><a href="#"><i class="ti ti-route" style="font-size:11px"></i> Traces</a></div>
+    </div>
+  </div>
+
+  <!-- Panel: E2 Order Svc → Payment -->
+  <div id="panel-e2" class="panel">
+    <div class="back-btn" onclick="selNode()"><i class="ti ti-arrow-left" style="font-size:13px"></i> Back to flow</div>
+    <div class="rp-head">
+      <div class="rp-node-row"><div class="ni ni-edge"><i class="ti ti-arrows-right-left"></i></div><div><div class="rp-name">Order Svc → Payment</div><div class="rp-sub">RegistryEdge · step ②→③</div></div></div>
+      <div class="sbdg-row"><span class="sbdg s-rest">REST</span><span class="sbdg s-ok">active</span><span class="sbdg s-gdpr">PCI</span></div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect"><div class="rp-lbl">APIEdgeDetails</div>
+        <div class="kv"><span class="kk">Pattern</span><span>REQUEST_RESPONSE</span></div>
+        <div class="kv"><span class="kk">Auth</span><span>Managed Identity</span></div>
+        <div class="kv"><span class="kk">TLS</span><span>mTLS</span></div>
+        <div class="kv"><span class="kk">Timeout</span><span>3 000ms</span></div>
+        <div class="kv"><span class="kk">Avg latency</span><span>298ms (traced)</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Resilience</div></div>
+      <div class="resil-row"><span class="rpill rp-on">✓ Circuit breaker</span><span class="rpill rp-on">✓ Retry ×2</span><span class="rpill rp-on">✓ Timeout</span></div>
+      <div class="rp-sect"><div class="rp-lbl">Calling endpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-call"><div><span class="ep-m m-post">POST</span><span class="ep-path">/api/v2/orders</span></div><div class="ep-op">ingestOrder (outbound) · Order Service</div><div class="ep-stats"><div class="ep-stat">calls/d <b>41k</b></div><div class="ep-stat">err <b>0.6%</b></div></div></div></div>
+      <div class="rp-sect"><div class="rp-lbl">Target endpoint</div></div>
+      <div style="padding:0 13px">
+        <div class="ep-card ep-tgt"><div><span class="ep-m m-post">POST</span><span class="ep-path">/api/v1/authorisations</span></div><div class="ep-op">authorisePayment · Payment Service · v1</div><div class="ep-stats"><div class="ep-stat">p99 <b>320ms</b></div><div class="ep-stat">limit <b>200/s</b></div></div></div>
+        <div class="saga-note" style="margin:7px 0"><div class="saga-t"><i class="ti ti-arrow-back-up" style="font-size:11px;margin-right:3px"></i>Compensating: void-auth</div><div class="saga-m">DELETE /api/v1/authorisations/{id}</div></div>
+      </div>
+      <div class="lnk-row" style="margin-top:10px"><a href="#"><i class="ti ti-file-code" style="font-size:11px"></i> OpenAPI spec</a><a href="#"><i class="ti ti-route" style="font-size:11px"></i> Traces</a></div>
+    </div>
+  </div>
+
+  <!-- Panel: E3 gRPC -->
+  <div id="panel-e3" class="panel">
+    <div class="back-btn" onclick="selNode()"><i class="ti ti-arrow-left" style="font-size:13px"></i> Back to flow</div>
+    <div class="rp-head">
+      <div class="rp-node-row"><div class="ni ni-edge"><i class="ti ti-arrows-right-left"></i></div><div><div class="rp-name">Order Svc → Order DAL</div><div class="rp-sub">RegistryEdge · step ②→④</div></div></div>
+      <div class="sbdg-row"><span class="sbdg s-grpc">gRPC</span><span class="sbdg s-ok">active</span><span class="sbdg s-neu">mTLS</span></div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect"><div class="rp-lbl">APIEdgeDetails</div>
+        <div class="kv"><span class="kk">Pattern</span><span>REQUEST_RESPONSE</span></div>
+        <div class="kv"><span class="kk">Auth</span><span>Mutual TLS</span></div>
+        <div class="kv"><span class="kk">Timeout</span><span>2 000ms</span></div>
+        <div class="kv"><span class="kk">Avg latency</span><span>31ms</span></div>
+        <div class="kv"><span class="kk">Error rate</span><span>0.0%</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Resilience</div></div>
+      <div class="resil-row"><span class="rpill rp-on">✓ Retry ×3</span><span class="rpill rp-on">✓ Deadline</span><span class="rpill rp-off">✗ Circuit breaker</span></div>
+      <div class="rp-sect"><div class="rp-lbl">Calling endpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-call"><div><span class="ep-m m-rpc">RPC</span><span class="ep-path">PersistOrder</span></div><div class="ep-op">gRPC unary · order_dal.proto v3</div><div class="ep-stats"><div class="ep-stat">calls/d <b>41k</b></div></div></div></div>
+      <div class="rp-sect"><div class="rp-lbl">Target endpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-tgt"><div><span class="ep-m m-rpc">RPC</span><span class="ep-path">OrderDal/PersistOrder</span></div><div class="ep-op">Order DAL · proto v3 · unary</div><div class="ep-stats"><div class="ep-stat">p99 <b>37ms</b></div></div></div></div>
+      <div class="lnk-row" style="margin-top:10px"><a href="#"><i class="ti ti-file-code" style="font-size:11px"></i> Proto file</a><a href="#"><i class="ti ti-route" style="font-size:11px"></i> Traces</a></div>
+    </div>
+  </div>
+
+  <!-- Panel: E4 JDBC -->
+  <div id="panel-e4" class="panel">
+    <div class="back-btn" onclick="selNode()"><i class="ti ti-arrow-left" style="font-size:13px"></i> Back to flow</div>
+    <div class="rp-head">
+      <div class="rp-node-row"><div class="ni ni-edge"><i class="ti ti-arrows-right-left"></i></div><div><div class="rp-name">Order DAL → Orders DB</div><div class="rp-sub">RegistryEdge · step ④→⑤</div></div></div>
+      <div class="sbdg-row"><span class="sbdg s-jdbc">JDBC</span><span class="sbdg s-ok">active</span><span class="sbdg s-neu">Managed ID</span></div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect"><div class="rp-lbl">APIEdgeDetails</div>
+        <div class="kv"><span class="kk">Pattern</span><span>READ_WRITE</span></div>
+        <div class="kv"><span class="kk">Auth</span><span>Azure Managed Identity</span></div>
+        <div class="kv"><span class="kk">Avg latency</span><span>12ms</span></div>
+        <div class="kv"><span class="kk">Pool size</span><span>8 connections</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Target query</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-tgt" style="font-family:var(--font-mono);font-size:10px;color:var(--pu800);line-height:1.7">INSERT INTO orders<br>&nbsp;&nbsp;(id, customer_id, amount,<br>&nbsp;&nbsp;&nbsp;status, created_at)<br>VALUES (?, ?, ?, 'PENDING', NOW())</div></div>
+      <div class="rp-sect"><div class="rp-lbl">Resilience</div></div>
+      <div class="resil-row"><span class="rpill rp-on">✓ Connection pool</span><span class="rpill rp-on">✓ Retry ×2</span><span class="rpill rp-off">✗ Read replica</span></div>
+      <div class="rp-sect"><div class="rp-lbl">Observability</div></div>
+      <div class="met-grid">
+        <div class="met-card"><div class="met-v" style="color:#27500A">12ms</div><div class="met-l">avg query</div></div>
+        <div class="met-card"><div class="met-v">41k/d</div><div class="met-l">writes/day</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: E5 ASB -->
+  <div id="panel-e5" class="panel">
+    <div class="back-btn" onclick="selNode()"><i class="ti ti-arrow-left" style="font-size:13px"></i> Back to flow</div>
+    <div class="rp-head">
+      <div class="rp-node-row"><div class="ni ni-edge"><i class="ti ti-arrows-right-left"></i></div><div><div class="rp-name">Order DAL → orders-bus</div><div class="rp-sub">RegistryEdge · step ④→⑥a</div></div></div>
+      <div class="sbdg-row"><span class="sbdg s-asb">ASB</span><span class="sbdg s-ok">active</span><span class="sbdg s-neu">OUTBOX</span></div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-sect"><div class="rp-lbl">APIEdgeDetails</div>
+        <div class="kv"><span class="kk">Pattern</span><span>ASYNC_FIRE_AND_FORGET</span></div>
+        <div class="kv"><span class="kk">Role</span><span>PRODUCE</span></div>
+        <div class="kv"><span class="kk">Channel</span><span>order-events [TOPIC]</span></div>
+        <div class="kv"><span class="kk">Auth</span><span>Managed Identity (SAS)</span></div>
+        <div class="kv"><span class="kk">Avg latency</span><span>&lt;500ms (relay)</span></div>
+      </div>
+      <div class="rp-sect"><div class="rp-lbl">Published endpoint</div></div>
+      <div style="padding:0 13px"><div class="ep-card ep-call"><div><span class="ep-m m-pub">PUB</span><span class="ep-path">order-events/OrderPlaced</span></div><div class="ep-op">Avro v2.1.0 · retention P7D · DLQ</div><div class="ep-stats"><div class="ep-stat">events/d <b>41k</b></div><div class="ep-stat">DLQ <b style="color:#633806">2</b></div></div></div></div>
+      <div class="rp-sect"><div class="rp-lbl">Subscribers</div></div>
+      <div class="conn-rows">
+        <div class="conn-row"><div class="ci" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-bell"></i></div><div class="conn-info"><div class="conn-nm">Notification Service</div><div class="conn-mt">notifications sub · ⑥b</div></div><span class="ct ct-asb">SUB</span></div>
+        <div class="conn-row"><div class="ci" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-chart-bar"></i></div><div class="conn-info"><div class="conn-nm">Analytics Service</div><div class="conn-mt">analytics sub · ⑥c</div></div><span class="ct ct-asb">SUB</span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /rp -->
+</div><!-- /app -->
+
+<script>
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id!=='graph') selNode();
+}
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  var el=document.getElementById('panel-'+id);
+  if(el) el.classList.add('active');
+}
+function selEdge(id){
+  showPanel(id);
+  document.querySelectorAll('[id^="el-"]').forEach(l=>{l.setAttribute('stroke-width',l.getAttribute('data-w')||'2');l.style.strokeOpacity='0.25'});
+  var t=document.getElementById('el-'+id);
+  if(t){t.setAttribute('stroke-width','3');t.style.strokeOpacity='1';}
+}
+function selNode(){
+  showPanel('flow');
+  document.querySelectorAll('[id^="el-"]').forEach(l=>{l.setAttribute('stroke-width',l.getAttribute('data-w')||'2');l.style.strokeOpacity='1'});
+}
+function showCapPanel(){
+  showPanel('cap');
+}
+function selFlow(id,el){
+  document.querySelectorAll('.fi').forEach(f=>f.classList.remove('active'));
+  if(el) el.classList.add('active');
+  selNode();
+}
+function toggleCap(id,header){
+  var el=document.getElementById(id);
+  var chev=header.querySelector('.cap-chevron');
+  el.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+function setDomain(d,btn){
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+document.querySelectorAll('[id^="el-"]').forEach(l=>l.setAttribute('data-w',l.getAttribute('stroke-width')||'2'));
+showPanel('flow');
+</script>
+</body>
+</html>
